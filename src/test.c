@@ -13,6 +13,7 @@
 #include "utils/Constants.h"
 #include "utils/Camera.h"
 #include "utils/Shader.h"
+#include "utils/Texture.h"
 
 // how much the mouse moved along the screen
 vec2 mouse_delta = {0.0f, 0.0f};
@@ -44,8 +45,6 @@ static void _mouse_curser_callback(GLFWwindow* window, double x_pos, double y_po
 static void _process_input(GLFWwindow *window);
 
 static inline void _update_mouse_position();
-
-static GLuint _load_texture(const char* file_path);
 
 int main(int argc, char **argv)
 {
@@ -165,8 +164,8 @@ int main(int argc, char **argv)
 		strcpy(specular_map_path, texture_path);
 		strcat(specular_map_path, "/specular_map.png.png");
 
-		container_texture = _load_texture(container_texture_file_path);
-		specular_map = _load_texture(specular_map_path);
+		container_texture = load_texture(container_texture_file_path);
+		specular_map = load_texture(specular_map_path);
 	}
 
 
@@ -600,43 +599,4 @@ static inline void _update_mouse_position()
 {
 	glm_vec2_add(mouse_pos, mouse_delta, mouse_pos);
 	mouse_delta[DIR_X] = 0.0f; mouse_delta[DIR_Y] = 0.0f;
-}
-
-static GLuint _load_texture(const char* file_path)
-{
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int tex_width, tex_height, nr_channels;
-	unsigned char *data = stbi_load(file_path, &tex_width, &tex_height, &nr_channels, 0);
-	if (data)
-	{
-		GLenum format;
-		switch(nr_channels) {
-			case 1:
-			format = GL_RED;
-			break;
-			case 3:
-			format = GL_RGB;
-			break;
-			case 4:
-			format = GL_RGBA;
-			break;
-			default:
-			format = GL_RGB;
-		}
-		glTexImage2D(GL_TEXTURE_2D, 0, format, tex_width, tex_height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		printf("%s\n", "Failed to load texture");
-	}
-	stbi_image_free(data);
 }
